@@ -1,0 +1,23 @@
+GitStronghold uses the following third-party components.
+
+Avalonia
+https://github.com/AvaloniaUI/Avalonia
+MIT License
+
+CommunityToolkit.Mvvm
+https://github.com/CommunityToolkit/dotnet
+MIT License
+
+Velopack
+https://github.com/velopack/velopack
+MIT License
+
+Plus Jakarta Sans
+Copyright 2020 The Plus Jakarta Sans Project Authors
+SIL Open Font License 1.1
+See src/EliteLevel.Avalonia/Assets/Fonts/OFL-PlusJakartaSans.txt
+
+DM Mono
+Copyright 2020 The DM Mono Project Authors
+SIL Open Font License 1.1
+See src/EliteLevel.Avalonia/Assets/Fonts/OFL-DMMono.txt

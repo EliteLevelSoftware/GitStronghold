@@ -1,0 +1,12 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <RootNamespace>EliteLevel.Avalonia</RootNamespace>
+    <Description>Elite Level Design System v2 for Avalonia.</Description>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Avalonia" Version="11.3.23" />
+  </ItemGroup>
+  <ItemGroup>
+    <AvaloniaResource Include="Assets\**\*.*" Exclude="Assets\Fonts\*.txt" />
+  </ItemGroup>
+</Project>

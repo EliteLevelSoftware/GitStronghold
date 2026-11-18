@@ -1,0 +1,10 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/EliteLevel.Avalonia/EliteLevel.Avalonia.csproj" />
+    <Project Path="src/GitStronghold.Core/GitStronghold.Core.csproj" />
+    <Project Path="src/GitStronghold.App/GitStronghold.App.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/GitStronghold.Core.Tests/GitStronghold.Core.Tests.csproj" />
+  </Folder>
+</Solution>

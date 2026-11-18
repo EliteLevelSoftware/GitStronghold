@@ -1,0 +1,6 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <RootNamespace>GitStronghold.Core</RootNamespace>
+    <Description>Offline GitHub snapshot engine for GitStronghold.</Description>
+  </PropertyGroup>
+</Project>

@@ -1,0 +1,11 @@
+bin/
+obj/
+.vs/
+.idea/
+*.user
+artifacts/
+Releases/
+TestResults/
+.DS_Store
+Thumbs.db
+*.gsh-tmp

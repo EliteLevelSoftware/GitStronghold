@@ -152,7 +152,7 @@ public static class VaultPath
 
     public static string[] SplitRelative(string relative)
     {
-        if (string.IsNullOrWhiteSpace(relative) || Path.IsPathRooted(relative))
+        if (string.IsNullOrWhiteSpace(relative) || IsGitAbsolute(relative))
         {
             throw new VaultException("A file path must stay inside the repository.");
         }
@@ -180,7 +180,7 @@ public static class VaultPath
         var current = root;
         foreach (var segment in segments)
         {
-            if (string.IsNullOrEmpty(segment) || segment.IndexOfAny(['/', '\\']) >= 0 || Path.IsPathRooted(segment))
+            if (string.IsNullOrEmpty(segment) || segment.IndexOfAny(['/', '\\']) >= 0 || IsGitAbsolute(segment))
             {
                 throw new VaultException("A path segment cannot contain a directory separator.");
             }
@@ -282,6 +282,14 @@ public static class VaultPath
         var bytes = System.Security.Cryptography.SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(value));
         return Convert.ToHexString(bytes)[..8].ToLowerInvariant();
     }
+
+    /// <summary>
+    /// A Git path is absolute only when it starts with a separator.
+    /// <see cref="Path.IsPathRooted"/> also treats <c>a:name</c> as a Windows drive path,
+    /// which would drop a legal repository file instead of sanitizing the colon.
+    /// </summary>
+    private static bool IsGitAbsolute(string path) =>
+        path.StartsWith('/') || path.StartsWith('\\');
 
     private static bool IsInside(string root, string full)
     {

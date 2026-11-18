@@ -1,0 +1,11 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="EliteLevel.Avalonia.Controls.ProductMark"
+             Width="{StaticResource ElSizeMark}" Height="{StaticResource ElSizeMark}">
+  <Grid>
+    <Ellipse Stroke="{StaticResource ElGoldBrush}" StrokeThickness="{StaticResource ElSizeIconStroke}" Margin="{StaticResource ElThicknessMarkRing}"/>
+    <Ellipse Fill="{StaticResource ElOxblood500Brush}" Margin="{StaticResource ElThicknessMarkFill}"/>
+    <Ellipse Fill="{StaticResource ElGoldWarmBrush}" Width="{StaticResource ElSizeMarkInner}" Height="{StaticResource ElSizeMarkInner}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+    <Ellipse Fill="{StaticResource ElCharcoal900Brush}" Width="{StaticResource ElSizeMarkCore}" Height="{StaticResource ElSizeMarkCore}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+  </Grid>
+</UserControl>

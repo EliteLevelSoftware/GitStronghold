@@ -1,0 +1,366 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+jobs:
+  test:
+    name: Test (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+      - name: Test
+        run: dotnet test GitStronghold.slnx -c Release --nologo
+
+  windows:
+    name: Windows release
+    needs: test
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+      - name: Version
+        id: version
+        shell: bash
+        run: |
+          tag="${GITHUB_REF_NAME#v}"
+          props=$(sed -n 's:.*<Version>\(.*\)</Version>.*:\1:p' Directory.Build.props | head -1 | tr -d '[:space:]')
+          company=$(sed -n 's:.*<Company>\(.*\)</Company>.*:\1:p' Directory.Build.props | head -1 | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
+          product=$(sed -n 's:.*<Product>\(.*\)</Product>.*:\1:p' Directory.Build.props | head -1 | tr -d '[:space:]')
+          case "$tag" in
+            "$props"|"$props"-*) ;;
+            *) echo "Tag v$tag does not match Directory.Build.props version $props" >&2; exit 1 ;;
+          esac
+          if [[ "$tag" == *-* ]]; then
+            echo "track=prerelease" >> "$GITHUB_OUTPUT"
+          else
+            echo "track=stable" >> "$GITHUB_OUTPUT"
+          fi
+          echo "version=$tag" >> "$GITHUB_OUTPUT"
+          echo "company=$company" >> "$GITHUB_OUTPUT"
+          echo "product=$product" >> "$GITHUB_OUTPUT"
+      - name: Release notes
+        shell: bash
+        run: |
+          version="${GITHUB_REF_NAME#v}"
+          track="${{ steps.version.outputs.track }}"
+          awk -v ver="$version" '
+            $0 == "## " ver { found=1; next }
+            found && /^## / { exit }
+            found { print }
+          ' CHANGELOG.md > release-notes.md
+          if ! grep -q '[^[:space:]]' release-notes.md; then
+            echo "CHANGELOG.md has no notes for $version" >&2
+            exit 1
+          fi
+          cat > release-body.md <<'EOF'
+          ## Download
+
+          | File | What it is |
+          |---|---|
+          | `GitStronghold-VERSION-Windows-Setup.exe` | Windows installer. |
+          | `GitStronghold-VERSION-macOS-AppleSilicon-Setup.pkg` | macOS installer for Apple silicon. |
+          | `GitStronghold-VERSION-macOS-Intel-Setup.pkg` | macOS installer for Intel. |
+          | `GitStronghold-VERSION-Linux-x64.AppImage` | Linux AppImage for x64. |
+
+          `SHA256SUMS.txt` is the SHA-256 digest of the files on this release.
+
+          ## VERSION
+          EOF
+          sed "s/VERSION/${version}/g" release-body.md > release-body.out
+          mv release-body.out release-body.md
+          cat release-notes.md >> release-body.md
+      - name: Publish
+        run: dotnet publish src/GitStronghold.App/GitStronghold.App.csproj -c Release -r win-x64 --self-contained true -o artifacts/pack
+      - name: Install vpk
+        shell: pwsh
+        run: |
+          dotnet tool install --global vpk --version 1.2.161
+          "$env:USERPROFILE\.dotnet\tools" | Out-File -FilePath $env:GITHUB_PATH -Append
+      - name: Pack
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = "Continue"
+          $PSNativeCommandUseErrorActionPreference = $false
+          $channel = "win-x64-${{ steps.version.outputs.track }}"
+          $out = "artifacts/velopack"
+          New-Item -ItemType Directory -Force $out | Out-Null
+          & vpk --yes pack --packId GitStronghold --packVersion "${{ steps.version.outputs.version }}" --packDir artifacts/pack --mainExe GitStronghold.exe --packTitle "${{ steps.version.outputs.product }}" --packAuthors "${{ steps.version.outputs.company }}" --icon src/GitStronghold.App/Assets/icon.ico --channel $channel --shortcuts Desktop,StartMenuRoot --delta none --noPortable --releaseNotes release-notes.md --outputDir $out
+          if ($LASTEXITCODE -ne 0) { throw "vpk pack failed" }
+          bash scripts/rename-release-assets.sh $out "${{ steps.version.outputs.version }}" windows $channel
+          if ($LASTEXITCODE -ne 0) { throw "rename failed" }
+      - name: Upload
+        shell: pwsh
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          $channel = "win-x64-${{ steps.version.outputs.track }}"
+          $upload = @("upload","github","--outputDir","artifacts/velopack","--channel",$channel,"--repoUrl","https://github.com/EliteLevelSoftware/GitStronghold","--token",$env:GITHUB_TOKEN,"--publish","--releaseName","${{ steps.version.outputs.product }} ${{ steps.version.outputs.version }}","--tag","${{ github.ref_name }}")
+          if ("${{ steps.version.outputs.track }}" -eq "prerelease") { $upload += "--pre" }
+          & vpk @upload
+          if ($LASTEXITCODE -ne 0) { throw "vpk upload failed" }
+      - name: Describe the release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: gh release edit "${{ github.ref_name }}" --repo EliteLevelSoftware/GitStronghold --notes-file release-body.md
+
+  linux:
+    name: Linux pack
+    needs: windows
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+      - name: Identity
+        id: version
+        run: |
+          tag="${GITHUB_REF_NAME#v}"
+          if [[ "$tag" == *-* ]]; then track=prerelease; else track=stable; fi
+          company=$(sed -n 's:.*<Company>\(.*\)</Company>.*:\1:p' Directory.Build.props | head -1 | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
+          product=$(sed -n 's:.*<Product>\(.*\)</Product>.*:\1:p' Directory.Build.props | head -1 | tr -d '[:space:]')
+          echo "track=$track" >> "$GITHUB_OUTPUT"
+          echo "company=$company" >> "$GITHUB_OUTPUT"
+          echo "product=$product" >> "$GITHUB_OUTPUT"
+      - name: Release notes
+        run: |
+          version="${GITHUB_REF_NAME#v}"
+          awk -v ver="$version" '
+            $0 == "## " ver { found=1; next }
+            found && /^## / { exit }
+            found { print }
+          ' CHANGELOG.md > release-notes.md
+      - name: Publish and pack
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          sudo apt-get update
+          sudo apt-get install -y squashfs-tools
+          dotnet publish src/GitStronghold.App/GitStronghold.App.csproj -c Release -r linux-x64 --self-contained true -o artifacts/pack
+          dotnet tool install --global vpk --version 1.2.161
+          export PATH="$PATH:$HOME/.dotnet/tools"
+          tag="${GITHUB_REF_NAME#v}"
+          track="${{ steps.version.outputs.track }}"
+          channel="linux-x64-$track"
+          mkdir -p artifacts/velopack
+          vpk --yes pack --packId GitStronghold --packVersion "$tag" --packDir artifacts/pack --mainExe GitStronghold --packTitle "${{ steps.version.outputs.product }}" --packAuthors "${{ steps.version.outputs.company }}" --icon src/GitStronghold.App/Assets/icon.png --channel "$channel" --delta none --releaseNotes release-notes.md --outputDir artifacts/velopack
+          bash scripts/rename-release-assets.sh artifacts/velopack "$tag" linux "$channel"
+          upload=(
+            vpk upload github
+            --outputDir artifacts/velopack
+            --channel "$channel"
+            --repoUrl https://github.com/EliteLevelSoftware/GitStronghold
+            --token "$GITHUB_TOKEN"
+            --publish
+            --merge
+            --releaseName "${{ steps.version.outputs.product }} $tag"
+            --tag "$GITHUB_REF_NAME"
+          )
+          if [[ "$track" == prerelease ]]; then upload+=(--pre); fi
+          "${upload[@]}"
+
+  macos:
+    name: macOS Apple silicon
+    needs: windows
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+      - name: Identity
+        id: version
+        run: |
+          tag="${GITHUB_REF_NAME#v}"
+          if [[ "$tag" == *-* ]]; then track=prerelease; else track=stable; fi
+          company=$(sed -n 's:.*<Company>\(.*\)</Company>.*:\1:p' Directory.Build.props | head -1 | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
+          product=$(sed -n 's:.*<Product>\(.*\)</Product>.*:\1:p' Directory.Build.props | head -1 | tr -d '[:space:]')
+          echo "track=$track" >> "$GITHUB_OUTPUT"
+          echo "company=$company" >> "$GITHUB_OUTPUT"
+          echo "product=$product" >> "$GITHUB_OUTPUT"
+      - name: Release notes
+        run: |
+          version="${GITHUB_REF_NAME#v}"
+          awk -v ver="$version" '
+            $0 == "## " ver { found=1; next }
+            found && /^## / { exit }
+            found { print }
+          ' CHANGELOG.md > release-notes.md
+      - name: Publish and pack
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          dotnet publish src/GitStronghold.App/GitStronghold.App.csproj -c Release -r osx-arm64 --self-contained true -o artifacts/pack
+          dotnet tool install --global vpk --version 1.2.161
+          export PATH="$PATH:$HOME/.dotnet/tools"
+          tag="${GITHUB_REF_NAME#v}"
+          track="${{ steps.version.outputs.track }}"
+          channel="osx-arm64-$track"
+          mkdir -p artifacts/velopack
+          vpk --yes pack \
+            --packId GitStronghold \
+            --packVersion "$tag" \
+            --packDir artifacts/pack \
+            --mainExe GitStronghold \
+            --packTitle "${{ steps.version.outputs.product }}" \
+            --packAuthors "${{ steps.version.outputs.company }}" \
+            --icon src/GitStronghold.App/Assets/icon.icns \
+            --channel "$channel" \
+            --delta none \
+            --noPortable \
+            --releaseNotes release-notes.md \
+            --outputDir artifacts/velopack
+          bash scripts/rename-release-assets.sh artifacts/velopack "$tag" macos "$channel"
+          upload=(
+            vpk upload github
+            --outputDir artifacts/velopack
+            --channel "$channel"
+            --repoUrl https://github.com/EliteLevelSoftware/GitStronghold
+            --token "$GITHUB_TOKEN"
+            --publish
+            --merge
+            --releaseName "${{ steps.version.outputs.product }} $tag"
+            --tag "$GITHUB_REF_NAME"
+          )
+          if [[ "$track" == prerelease ]]; then upload+=(--pre); fi
+          "${upload[@]}"
+
+  macos-intel:
+    name: macOS Intel
+    needs: windows
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+      - name: Identity
+        id: version
+        run: |
+          tag="${GITHUB_REF_NAME#v}"
+          if [[ "$tag" == *-* ]]; then track=prerelease; else track=stable; fi
+          company=$(sed -n 's:.*<Company>\(.*\)</Company>.*:\1:p' Directory.Build.props | head -1 | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
+          product=$(sed -n 's:.*<Product>\(.*\)</Product>.*:\1:p' Directory.Build.props | head -1 | tr -d '[:space:]')
+          echo "track=$track" >> "$GITHUB_OUTPUT"
+          echo "company=$company" >> "$GITHUB_OUTPUT"
+          echo "product=$product" >> "$GITHUB_OUTPUT"
+      - name: Release notes
+        run: |
+          version="${GITHUB_REF_NAME#v}"
+          awk -v ver="$version" '
+            $0 == "## " ver { found=1; next }
+            found && /^## / { exit }
+            found { print }
+          ' CHANGELOG.md > release-notes.md
+      - name: Publish and pack
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          dotnet publish src/GitStronghold.App/GitStronghold.App.csproj -c Release -r osx-x64 --self-contained true -o artifacts/pack
+          dotnet tool install --global vpk --version 1.2.161
+          export PATH="$PATH:$HOME/.dotnet/tools"
+          tag="${GITHUB_REF_NAME#v}"
+          track="${{ steps.version.outputs.track }}"
+          channel="osx-x64-$track"
+          mkdir -p artifacts/velopack
+          vpk --yes pack \
+            --packId GitStronghold \
+            --packVersion "$tag" \
+            --packDir artifacts/pack \
+            --mainExe GitStronghold \
+            --packTitle "${{ steps.version.outputs.product }}" \
+            --packAuthors "${{ steps.version.outputs.company }}" \
+            --icon src/GitStronghold.App/Assets/icon.icns \
+            --channel "$channel" \
+            --delta none \
+            --noPortable \
+            --releaseNotes release-notes.md \
+            --outputDir artifacts/velopack
+          bash scripts/rename-release-assets.sh artifacts/velopack "$tag" macos-intel "$channel"
+          upload=(
+            vpk upload github
+            --outputDir artifacts/velopack
+            --channel "$channel"
+            --repoUrl https://github.com/EliteLevelSoftware/GitStronghold
+            --token "$GITHUB_TOKEN"
+            --publish
+            --merge
+            --releaseName "${{ steps.version.outputs.product }} $tag"
+            --tag "$GITHUB_REF_NAME"
+          )
+          if [[ "$track" == prerelease ]]; then upload+=(--pre); fi
+          "${upload[@]}"
+
+  checksums:
+    name: SHA256SUMS
+    needs: [windows, linux, macos, macos-intel]
+    if: always() && needs.windows.result == 'success'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Write checksums for the uploaded assets
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          repo=EliteLevelSoftware/GitStronghold
+          tag="${GITHUB_REF_NAME#v}"
+          if [[ "$tag" == *-* ]]; then track=prerelease; else track=stable; fi
+          release_json=$(mktemp)
+          ready=0
+          for _ in 1 2 3 4 5 6; do
+            gh api "repos/${repo}/releases/tags/${GITHUB_REF_NAME}" > "$release_json"
+            if jq -e '.assets | length > 0 and all(.[]; .digest != null and .digest != "")' "$release_json" >/dev/null; then
+              ready=1
+              break
+            fi
+            sleep 10
+          done
+          if [[ "$ready" -ne 1 ]]; then
+            echo "a release asset is missing a digest" >&2
+            exit 1
+          fi
+          jq -r '.assets[] | select(.name != "SHA256SUMS.txt") | "\(.digest | sub("^sha256:"; "") | ascii_downcase)  \(.name)"' "$release_json" \
+            | LC_ALL=C sort -k2 > SHA256SUMS.txt
+          require_name() {
+            if ! grep -F -q "  $1" SHA256SUMS.txt; then
+              echo "SHA256SUMS.txt is missing $1" >&2
+              exit 1
+            fi
+          }
+          require_name "GitStronghold-${tag}-Windows-Setup.exe"
+          require_name "GitStronghold-${tag}-win-x64-${track}-full.nupkg"
+          require_name "releases.win-x64-${track}.json"
+          if grep -F -q "Linux-x64.AppImage" SHA256SUMS.txt; then
+            require_name "GitStronghold-${tag}-Linux-x64.AppImage"
+            require_name "GitStronghold-${tag}-linux-x64-${track}-full.nupkg"
+            require_name "releases.linux-x64-${track}.json"
+          fi
+          if grep -F -q "macOS-AppleSilicon-Setup.pkg" SHA256SUMS.txt; then
+            require_name "GitStronghold-${tag}-macOS-AppleSilicon-Setup.pkg"
+            require_name "GitStronghold-${tag}-osx-arm64-${track}-full.nupkg"
+            require_name "releases.osx-arm64-${track}.json"
+          fi
+          if grep -F -q "macOS-Intel-Setup.pkg" SHA256SUMS.txt; then
+            require_name "GitStronghold-${tag}-macOS-Intel-Setup.pkg"
+            require_name "GitStronghold-${tag}-osx-x64-${track}-full.nupkg"
+            require_name "releases.osx-x64-${track}.json"
+          fi
+          gh release upload "$GITHUB_REF_NAME" SHA256SUMS.txt --repo "$repo" --clobber

@@ -1,0 +1,407 @@
+<controls:EliteWindow xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:controls="using:EliteLevel.Avalonia.Controls"
+        xmlns:app="using:GitStronghold.App.Controls"
+        xmlns:vm="using:GitStronghold.App.ViewModels"
+        x:Class="GitStronghold.App.MainWindow"
+        x:Name="Root"
+        x:DataType="vm:MainViewModel"
+        Title="{Binding Product}"
+        Classes.reduce="{Binding ReduceEffects}"
+        KeyDown="OnKeyDown">
+  <Border Margin="{Binding ChromeMargin, RelativeSource={RelativeSource AncestorType=controls:EliteWindow}}"
+          CornerRadius="{Binding ChromeRadius, RelativeSource={RelativeSource AncestorType=controls:EliteWindow}}"
+          BoxShadow="{Binding ChromeShadow, RelativeSource={RelativeSource AncestorType=controls:EliteWindow}}"
+          Background="{StaticResource ElCharcoal900Brush}"
+          BorderBrush="{StaticResource ElFrameBrush}" BorderThickness="{StaticResource ElFrameThickness}"
+          ClipToBounds="True">
+    <Grid RowDefinitions="*,Auto">
+      <Grid ColumnDefinitions="Auto,*">
+        <Border Width="{StaticResource ElSizeNavWidth}" Background="{StaticResource ElCharcoal950Brush}">
+          <DockPanel>
+            <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Spacing="{StaticResource ElSpace3}" Margin="{StaticResource ElMainPadding}">
+              <controls:ProductMark Width="{StaticResource ElSizeMark}" Height="{StaticResource ElSizeMark}" VerticalAlignment="Center"/>
+              <StackPanel VerticalAlignment="Center" Spacing="{StaticResource ElSpace1}">
+                <TextBlock Classes="el-wordmark" Text="{Binding Product}"/>
+                <TextBlock Text="{Binding Credit}" FontSize="11.5" FontWeight="Medium"
+                           FontFamily="{StaticResource ElFontUi}" Foreground="{StaticResource ElTextMutedBrush}"/>
+              </StackPanel>
+            </StackPanel>
+            <StackPanel DockPanel.Dock="Bottom" Spacing="{StaticResource ElSpace1}">
+              <Button Classes="el-nav" Classes.active="{Binding IsSettings}" Command="{Binding ShowPageCommand}" CommandParameter="settings">
+                <Grid ColumnDefinitions="Auto,*" ColumnSpacing="{StaticResource ElSpace3}">
+                  <Path Classes="el-icon" Data="M12,8 a4,4 0 1 0 0.1,0 M12,2 v2 M12,20 v2 M4.9,4.9 l1.4,1.4 M17.7,17.7 l1.4,1.4 M2,12 h2 M20,12 h2 M4.9,19.1 l1.4,-1.4 M17.7,6.3 l1.4,-1.4"/>
+                  <TextBlock Grid.Column="1" Text="Settings" VerticalAlignment="Center"/>
+                </Grid>
+              </Button>
+              <Button Classes="el-nav" Command="{Binding OpenAboutCommand}">
+                <Grid ColumnDefinitions="Auto,*" ColumnSpacing="{StaticResource ElSpace3}">
+                  <Path Classes="el-icon" Data="M12,17 h0.1 M12,7 v6 M12,3 a9,9 0 1 0 0.1,0"/>
+                  <TextBlock Grid.Column="1" Text="About" VerticalAlignment="Center"/>
+                </Grid>
+              </Button>
+            </StackPanel>
+            <StackPanel Spacing="{StaticResource ElSpace1}">
+              <Button Classes="el-nav" Classes.active="{Binding IsDashboard}" Command="{Binding ShowPageCommand}" CommandParameter="dashboard">
+                <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="{StaticResource ElSpace3}">
+                  <Path Classes="el-icon" Data="M4,4 H10 V20 H4 Z M12,4 H20 V20 H12 Z"/>
+                  <TextBlock Grid.Column="1" Text="Dashboard" VerticalAlignment="Center"/>
+                  <TextBlock Grid.Column="2" Classes="count" Text="{Binding ProfileCount}" VerticalAlignment="Center"/>
+                </Grid>
+              </Button>
+              <Button Classes="el-nav" Classes.active="{Binding IsBackup}" Command="{Binding ShowPageCommand}" CommandParameter="backup">
+                <Grid ColumnDefinitions="Auto,*" ColumnSpacing="{StaticResource ElSpace3}">
+                  <Path Classes="el-icon" Data="M12,3 V15 M7,10 L12,15 L17,10 M4,19 H20"/>
+                  <TextBlock Grid.Column="1" Text="Backup" VerticalAlignment="Center"/>
+                </Grid>
+              </Button>
+              <Button Classes="el-nav" Classes.active="{Binding IsProfiles}" Command="{Binding ShowPageCommand}" CommandParameter="profiles">
+                <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="{StaticResource ElSpace3}">
+                  <Path Classes="el-icon" Data="M12,12 a4,4 0 1 0 0.1,0 M4,20 c1,-4 4,-6 8,-6 s7,2 8,6"/>
+                  <TextBlock Grid.Column="1" Text="Profiles" VerticalAlignment="Center"/>
+                  <TextBlock Grid.Column="2" Classes="count" Text="{Binding ProfileCount}" VerticalAlignment="Center"/>
+                </Grid>
+              </Button>
+              <Button Classes="el-nav" Classes.active="{Binding IsRepositories}" Command="{Binding ShowPageCommand}" CommandParameter="repositories">
+                <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="{StaticResource ElSpace3}">
+                  <Path Classes="el-icon" Data="M4,6 H20 V18 H4 Z M8,6 V4 H16 V6"/>
+                  <TextBlock Grid.Column="1" Text="Repositories" VerticalAlignment="Center"/>
+                  <TextBlock Grid.Column="2" Classes="count" Text="{Binding RepositoryCount}" VerticalAlignment="Center"/>
+                </Grid>
+              </Button>
+              <Button Classes="el-nav" Classes.active="{Binding IsBrowse}" Command="{Binding ShowPageCommand}" CommandParameter="browse">
+                <Grid ColumnDefinitions="Auto,*" ColumnSpacing="{StaticResource ElSpace3}">
+                  <Path Classes="el-icon" Data="M4,4 H10 L12,6 H20 V18 H4 Z"/>
+                  <TextBlock Grid.Column="1" Text="Browse offline" VerticalAlignment="Center"/>
+                </Grid>
+              </Button>
+              <Button Classes="el-nav" Classes.active="{Binding IsLogs}" Command="{Binding ShowPageCommand}" CommandParameter="logs">
+                <Grid ColumnDefinitions="Auto,*" ColumnSpacing="{StaticResource ElSpace3}">
+                  <Path Classes="el-icon" Data="M6,3 H16 L18,5 V21 H6 Z M9,9 H15 M9,13 H15 M9,17 H13"/>
+                  <TextBlock Grid.Column="1" Text="Logs" VerticalAlignment="Center"/>
+                </Grid>
+              </Button>
+            </StackPanel>
+          </DockPanel>
+        </Border>
+
+        <Grid Grid.Column="1" RowDefinitions="Auto,*" Margin="{StaticResource ElMainPadding}">
+          <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="{StaticResource ElSpace3}" PointerPressed="OnDrag" Background="Transparent">
+            <Border Classes="el-search">
+              <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="{StaticResource ElSpace3}">
+                <Path Classes="el-icon-muted" Data="M10,10 a4.5,4.5 0 1 1 0.1,0 M14,14 L18,18" VerticalAlignment="Center"/>
+                <TextBox x:Name="SearchBox" Grid.Column="1" Classes="plain" Watermark="Search profiles, repositories and files" Text="{Binding SearchText}"/>
+                <Border Grid.Column="2" Background="{StaticResource ElCharcoal750Brush}" CornerRadius="{StaticResource ElRadiusKbd}" Padding="{StaticResource ElChipPadding}" VerticalAlignment="Center">
+                  <TextBlock Classes="mono" Text="Ctrl K" Foreground="{StaticResource ElTextFaintBrush}"/>
+                </Border>
+              </Grid>
+            </Border>
+            <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="{StaticResource ElSpace2}" VerticalAlignment="Center">
+              <Button Classes="el-icon" Command="{Binding DismissNoticeCommand}" ToolTip.Tip="Notices">
+                <Path Classes="el-icon" Data="M6,9 a6,6 0 0 1 12,0 c0,5 2,6 2,6 H4 s2,-1 2,-6 M10,19 a2,2 0 0 0 4,0"/>
+              </Button>
+              <Border Height="{StaticResource ElSizeIconButton}" CornerRadius="{StaticResource ElRadiusPill}" Background="{StaticResource ElCharcoal800Brush}" Padding="{StaticResource ElChipPadding}" VerticalAlignment="Center">
+                <StackPanel Orientation="Horizontal" Spacing="{StaticResource ElSpace2}">
+                  <Ellipse Width="{StaticResource ElSpace2}" Height="{StaticResource ElSpace2}" Fill="{StaticResource ElSuccessBrush}" VerticalAlignment="Center"/>
+                  <TextBlock Text="Offline vault" VerticalAlignment="Center" Foreground="{StaticResource ElText2Brush}"/>
+                </StackPanel>
+              </Border>
+            </StackPanel>
+          </Grid>
+
+          <Grid Grid.Row="1">
+            <ScrollViewer IsVisible="{Binding IsDashboard}">
+              <StackPanel Spacing="{StaticResource ElSpaceSectionGap}">
+                <Grid ColumnDefinitions="*,Auto" ColumnSpacing="{StaticResource ElSpace5}">
+                  <Border Classes="el-hero">
+                    <Grid>
+                      <Border Background="{StaticResource ElGradHeroArtBase}"/>
+                      <Border Background="{StaticResource ElGradHeroGlow}"/>
+                      <Border Background="{StaticResource ElGradHeroScrim}"/>
+                      <Border Background="{StaticResource ElGrainBrush}"/>
+                      <StackPanel Margin="{StaticResource ElFeaturePadding}" VerticalAlignment="Bottom" Spacing="{StaticResource ElSpace3}">
+                        <TextBlock Classes="el-eyebrow" Text="Offline vault"/>
+                        <TextBlock Classes="el-display" Text="{Binding HeroTitle}" TextWrapping="Wrap" MaxLines="2"/>
+                        <TextBlock Classes="el-body" Text="{Binding HeroMeta}"/>
+                      </StackPanel>
+                    </Grid>
+                  </Border>
+                  <controls:FeatureCard Grid.Column="1" Width="{StaticResource ElSizeDetailColW}">
+                    <DockPanel>
+                      <Button DockPanel.Dock="Bottom" Classes="el-primary" Content="Back up a profile" Command="{Binding ShowPageCommand}" CommandParameter="backup" HorizontalAlignment="Stretch"/>
+                      <StackPanel Spacing="{StaticResource ElSpace3}">
+                        <TextBlock Classes="el-feature" Text="Keep a copy here"/>
+                        <TextBlock Classes="el-on-feature-muted" Text="Profile, avatar, every branch, releases, and gists. Nothing is fetched through the window."/>
+                        <TextBlock Classes="el-on-feature" Text="{Binding DashboardStats}"/>
+                      </StackPanel>
+                    </DockPanel>
+                  </controls:FeatureCard>
+                </Grid>
+                <TextBlock Classes="el-section" Text="Recent profiles" IsVisible="{Binding HasProfiles}"/>
+                <TextBlock Classes="el-body" Text="No profile yet. Back up a GitHub user, an organization, or owner/repo." IsVisible="{Binding ShowEmpty}"/>
+                <ItemsControl ItemsSource="{Binding Profiles}" IsVisible="{Binding HasProfiles}">
+                  <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                      <WrapPanel Orientation="Horizontal"/>
+                    </ItemsPanelTemplate>
+                  </ItemsControl.ItemsPanel>
+                  <ItemsControl.ItemTemplate>
+                    <DataTemplate x:DataType="vm:ProfileRow">
+                      <Button Classes="el-tile" Margin="{StaticResource ElThicknessField}" Command="{Binding #Root.((vm:MainViewModel)DataContext).SelectProfileCommand}" CommandParameter="{Binding Login}">
+                        <Border Classes="el-card" Width="{StaticResource ElSizeDetailColW}">
+                          <StackPanel Spacing="{StaticResource ElSpace2}">
+                            <Image Source="{Binding AvatarPath, Converter={StaticResource FileImage}}" Width="{StaticResource ElSizeThumbRowH}" Height="{StaticResource ElSizeThumbRowH}" Stretch="UniformToFill"/>
+                            <TextBlock Classes="el-section" Text="{Binding Title}" TextTrimming="CharacterEllipsis"/>
+                            <TextBlock Classes="el-muted" Text="{Binding Meta}" TextTrimming="CharacterEllipsis"/>
+                          </StackPanel>
+                        </Border>
+                      </Button>
+                    </DataTemplate>
+                  </ItemsControl.ItemTemplate>
+                </ItemsControl>
+              </StackPanel>
+            </ScrollViewer>
+
+            <ScrollViewer IsVisible="{Binding IsBackup}">
+              <StackPanel Classes="el-page">
+                <TextBlock Classes="el-section" Text="Backup"/>
+                <TextBlock Classes="el-body" Text="Enter a GitHub user, an organization, or owner/repo. The snapshot is written only inside the vault."/>
+                <TextBlock Classes="el-muted" Text="GitHub name"/>
+                <Border Classes="el-field">
+                  <TextBox Classes="plain" Text="{Binding Target}" Watermark="octocat or octocat/Hello-World"/>
+                </Border>
+                <TextBlock Classes="el-muted" Text="{Binding TokenStatus}"/>
+                <StackPanel Orientation="Horizontal" Spacing="{StaticResource ElSpace2}">
+                  <Button Classes="el-primary" Content="Start backup" Command="{Binding StartBackupCommand}" IsEnabled="{Binding !Busy}"/>
+                  <Button Classes="el-secondary" Content="Cancel" Command="{Binding CancelBackupCommand}" IsVisible="{Binding Busy}"/>
+                </StackPanel>
+                <Border Classes="el-card" IsVisible="{Binding HasProgress}">
+                  <StackPanel Spacing="{StaticResource ElSpace2}">
+                    <TextBlock Classes="el-section" Text="{Binding Phase}"/>
+                    <TextBlock Classes="el-body" Text="{Binding Detail}"/>
+                    <TextBlock Classes="mono" Text="{Binding CountsText}"/>
+                    <TextBlock Classes="el-muted" Text="{Binding BackupMessage}"/>
+                  </StackPanel>
+                </Border>
+              </StackPanel>
+            </ScrollViewer>
+
+            <ScrollViewer IsVisible="{Binding IsProfiles}">
+              <StackPanel Classes="el-page">
+                <TextBlock Classes="el-section" Text="Profiles"/>
+                <TextBlock Classes="el-body" Text="Each profile is a folder in the vault. Deleting one removes that snapshot and nothing outside it." IsVisible="{Binding HasProfiles}"/>
+                <TextBlock Classes="el-body" Text="No profiles yet." IsVisible="{Binding ShowEmpty}"/>
+                <ItemsControl ItemsSource="{Binding Profiles}">
+                  <ItemsControl.ItemTemplate>
+                    <DataTemplate x:DataType="vm:ProfileRow">
+                      <Border Classes="el-card" Margin="{StaticResource ElThicknessNone}">
+                        <Grid ColumnDefinitions="Auto,*,Auto,Auto" ColumnSpacing="{StaticResource ElSpace3}">
+                          <Image Source="{Binding AvatarPath, Converter={StaticResource FileImage}}" Width="{StaticResource ElSizeThumbRowH}" Height="{StaticResource ElSizeThumbRowH}"/>
+                          <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                            <TextBlock Classes="el-section" Text="{Binding Title}"/>
+                            <TextBlock Classes="el-muted" Text="{Binding Meta}"/>
+                          </StackPanel>
+                          <Button Grid.Column="2" Classes="el-secondary" Content="Browse" Command="{Binding #Root.((vm:MainViewModel)DataContext).SelectProfileCommand}" CommandParameter="{Binding Login}"/>
+                          <Button Grid.Column="3" Classes="el-danger" Content="Delete" Command="{Binding #Root.((vm:MainViewModel)DataContext).AskDeleteCommand}" CommandParameter="{Binding Login}"/>
+                        </Grid>
+                      </Border>
+                    </DataTemplate>
+                  </ItemsControl.ItemTemplate>
+                </ItemsControl>
+              </StackPanel>
+            </ScrollViewer>
+
+            <ScrollViewer IsVisible="{Binding IsRepositories}">
+              <StackPanel Classes="el-page">
+                <TextBlock Classes="el-section" Text="Repositories"/>
+                <TextBlock Classes="el-body" Text="No repositories in the vault yet." IsVisible="{Binding ShowEmpty}"/>
+                <ItemsControl ItemsSource="{Binding Repositories}">
+                  <ItemsControl.ItemTemplate>
+                    <DataTemplate x:DataType="vm:RepoRow">
+                      <Border Classes="el-card">
+                        <StackPanel Spacing="{StaticResource ElSpace2}">
+                          <TextBlock Classes="el-section" Text="{Binding Name}"/>
+                          <TextBlock Classes="el-muted" Text="{Binding Meta}"/>
+                          <TextBlock Classes="el-body" Text="{Binding Description}"/>
+                          <StackPanel Orientation="Horizontal" Spacing="{StaticResource ElSpace2}">
+                            <Button Classes="el-secondary" Content="Browse" Command="{Binding #Root.((vm:MainViewModel)DataContext).OpenRepositoryCommand}" CommandParameter="{Binding}"/>
+                            <Button Classes="el-secondary" Content="Open on GitHub" Command="{Binding #Root.((vm:MainViewModel)DataContext).OpenRepositorySiteCommand}" CommandParameter="{Binding HtmlUrl}"/>
+                          </StackPanel>
+                        </StackPanel>
+                      </Border>
+                    </DataTemplate>
+                  </ItemsControl.ItemTemplate>
+                </ItemsControl>
+              </StackPanel>
+            </ScrollViewer>
+
+            <Grid IsVisible="{Binding IsBrowse}" RowDefinitions="Auto,*" RowSpacing="{StaticResource ElSpace3}">
+              <StackPanel Orientation="Horizontal" Spacing="{StaticResource ElSpace2}">
+                <ComboBox ItemsSource="{Binding ProfileNames}" SelectedItem="{Binding SelectedProfile}" MinWidth="{StaticResource ElSizeNavWidth}" PlaceholderText="Profile"/>
+                <ComboBox ItemsSource="{Binding RepoNames}" SelectedItem="{Binding SelectedRepo}" MinWidth="{StaticResource ElSizeNavWidth}" PlaceholderText="Repository"/>
+                <ComboBox ItemsSource="{Binding BranchNames}" SelectedItem="{Binding SelectedBranch}" MinWidth="{StaticResource ElSizeNavWidth}" PlaceholderText="Branch"/>
+              </StackPanel>
+              <Grid Grid.Row="1" ColumnDefinitions="Auto,*" ColumnSpacing="{StaticResource ElSpace4}">
+                <Border Classes="el-card" Width="{StaticResource ElSizeDetailColW}">
+                  <DockPanel>
+                    <TextBlock DockPanel.Dock="Top" Classes="el-section" Text="Files"/>
+                    <TextBlock Classes="el-muted" Text="Choose a profile to browse the snapshot." IsVisible="{Binding ShowViewerEmpty}"/>
+                    <ListBox ItemsSource="{Binding Files}">
+                      <ListBox.ItemTemplate>
+                        <DataTemplate x:DataType="vm:FileRow">
+                          <Button Classes="el-row" Classes.selected="{Binding IsSelected}" Command="{Binding #Root.((vm:MainViewModel)DataContext).OpenFileCommand}" CommandParameter="{Binding}">
+                            <TextBlock Text="{Binding Name}" TextTrimming="CharacterEllipsis"/>
+                          </Button>
+                        </DataTemplate>
+                      </ListBox.ItemTemplate>
+                    </ListBox>
+                  </DockPanel>
+                </Border>
+                <Border Grid.Column="1" Classes="el-card">
+                  <DockPanel>
+                    <TextBlock DockPanel.Dock="Top" Classes="el-muted" Text="Nothing selected" IsVisible="{Binding ShowViewerEmpty}"/>
+                    <ScrollViewer>
+                      <StackPanel Spacing="{StaticResource ElSpace3}">
+                        <TextBox Classes="el-code" Text="{Binding CodeText}" AcceptsReturn="True" IsVisible="{Binding ShowCode}" MinHeight="{StaticResource ElSizeViewer}"/>
+                        <TextBlock Classes="el-body" Text="{Binding CodeText}" IsVisible="{Binding ShowBinary}"/>
+                        <app:MarkdownView Markdown="{Binding MarkdownText}" Vault="{Binding VaultPath}" BaseDirectory="{Binding ViewerDirectory}" IsVisible="{Binding ShowMarkdown}" NavigateRelative="OnMarkdownNavigate"/>
+                        <Image Source="{Binding ImagePath, Converter={StaticResource FileImage}}" MaxHeight="{StaticResource ElSizePreview}" Stretch="Uniform" HorizontalAlignment="Left" IsVisible="{Binding ShowImage}"/>
+                      </StackPanel>
+                    </ScrollViewer>
+                  </DockPanel>
+                </Border>
+              </Grid>
+            </Grid>
+
+            <ScrollViewer IsVisible="{Binding IsLogs}">
+              <Grid ColumnDefinitions="Auto,*" ColumnSpacing="{StaticResource ElSpace4}">
+                <ListBox ItemsSource="{Binding LogNames}" Width="{StaticResource ElSizeDetailColW}">
+                  <ListBox.ItemTemplate>
+                    <DataTemplate>
+                      <Button Classes="el-row" Content="{Binding}" Command="{Binding #Root.((vm:MainViewModel)DataContext).ShowLogCommand}" CommandParameter="{Binding}"/>
+                    </DataTemplate>
+                  </ListBox.ItemTemplate>
+                </ListBox>
+                <TextBox Grid.Column="1" Classes="el-code" Text="{Binding LogText}" AcceptsReturn="True" TextWrapping="Wrap"/>
+              </Grid>
+            </ScrollViewer>
+
+            <ScrollViewer IsVisible="{Binding IsSettings}">
+              <StackPanel Classes="el-page">
+                <TextBlock Classes="el-section" Text="Settings"/>
+                <TextBlock Classes="el-muted" Text="Backup folder"/>
+                <Grid ColumnDefinitions="*,Auto" ColumnSpacing="{StaticResource ElSpace2}">
+                  <Border Classes="el-field">
+                    <TextBox Classes="plain" Text="{Binding VaultPath}"/>
+                  </Border>
+                  <Button Grid.Column="1" Classes="el-secondary" Content="Browse" Command="{Binding BrowseVaultCommand}"/>
+                </Grid>
+                <CheckBox Content="Incremental backup, skip unchanged files by sha" IsChecked="{Binding Incremental}"/>
+                <CheckBox Content="Notify when a backup finishes" IsChecked="{Binding Notifications}"/>
+                <CheckBox Content="Reduce effects" IsChecked="{Binding ReduceEffects}"/>
+                <TextBlock Classes="el-section" Text="GitHub token"/>
+                <TextBlock Classes="el-body" Text="Optional. A fine-grained personal access token with read-only Contents and Metadata reaches private repositories you can already see. The token is stored with the operating system secret store and is not written to settings or logs."/>
+                <Border Classes="el-field">
+                  <TextBox Classes="plain" Text="{Binding TokenDraft}" PasswordChar="•" Watermark="github_pat_…"/>
+                </Border>
+                <TextBlock Classes="el-muted" Text="{Binding TokenStatus}"/>
+                <TextBlock Classes="el-muted" Text="{Binding TokenMessage}"/>
+                <StackPanel Orientation="Horizontal" Spacing="{StaticResource ElSpace2}">
+                  <Button Classes="el-primary" Content="Save token" Command="{Binding SaveTokenCommand}"/>
+                  <Button Classes="el-secondary" Content="Clear token" Command="{Binding ClearTokenCommand}"/>
+                  <Button Classes="el-secondary" Content="Create a read-only token" Command="{Binding CreateTokenCommand}"/>
+                </StackPanel>
+                <TextBlock Classes="el-section" Text="Updates"/>
+                <CheckBox Content="Check for updates on startup" IsChecked="{Binding CheckUpdatesOnStartup}"/>
+                <TextBlock Classes="el-muted" Text="Update source. Leave this blank to use the public GitHub releases."/>
+                <Border Classes="el-field">
+                  <TextBox Classes="plain" Text="{Binding UpdateSource}" Watermark="{Binding Product}"/>
+                </Border>
+                <Button Classes="el-secondary" Content="Check now" Command="{Binding CheckForUpdatesCommand}" HorizontalAlignment="Left"/>
+                <TextBlock Classes="el-body" Text="{Binding UpdateStatus}"/>
+                <TextBlock Classes="mono" Text="{Binding VersionLabel}" Foreground="{StaticResource ElTextMutedBrush}"/>
+                <TextBlock Text="{Binding Credit}" FontSize="11.5" FontWeight="Medium"
+                           FontFamily="{StaticResource ElFontUi}" Foreground="{StaticResource ElTextMutedBrush}"/>
+              </StackPanel>
+            </ScrollViewer>
+          </Grid>
+        </Grid>
+      </Grid>
+
+      <Border Grid.Row="1" Height="28" Padding="16,0" BorderBrush="{StaticResource ElBorderControlBrush}" BorderThickness="0,1,0,0"
+              Background="{StaticResource ElCharcoal900Brush}">
+        <DockPanel LastChildFill="False">
+          <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" Spacing="6" VerticalAlignment="Center"
+                      IsVisible="{Binding ShowCredit}">
+            <TextBlock Text="{Binding ProductName}" FontSize="11.5" FontWeight="Medium"
+                       FontFamily="{StaticResource ElFontUi}" Foreground="{StaticResource ElTextMutedBrush}"/>
+            <TextBlock Text="{Binding VersionLabel}" FontSize="11" FontFamily="{StaticResource ElFontMono}"
+                       Foreground="{StaticResource ElTextMutedBrush}"/>
+            <TextBlock Text="·" FontSize="11.5" Foreground="{StaticResource ElTextFaintBrush}"/>
+            <TextBlock Text="{Binding Credit}" FontSize="11.5" FontWeight="Medium"
+                       FontFamily="{StaticResource ElFontUi}" Foreground="{StaticResource ElTextMutedBrush}"/>
+          </StackPanel>
+        </DockPanel>
+      </Border>
+
+      <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Top" ZIndex="5">
+        <Button Classes="el-caption" Click="OnMinimize" ToolTip.Tip="Minimise">
+          <Path Classes="el-icon-muted" Data="M2,8 H12"/>
+        </Button>
+        <Button Classes="el-caption" Click="OnMaximize" ToolTip.Tip="Maximise">
+          <Path Classes="el-icon-muted" Data="M3,3 H11 V11 H3 Z"/>
+        </Button>
+        <Button Classes="el-caption el-close" Click="OnClose" ToolTip.Tip="Close">
+          <Path Classes="el-icon-muted" Data="M3,3 L11,11 M11,3 L3,11"/>
+        </Button>
+      </StackPanel>
+      <Border Height="{StaticResource ElSpace2}" VerticalAlignment="Top" Background="Transparent" PointerPressed="OnResizeTop"/>
+      <Border Height="{StaticResource ElSpace2}" VerticalAlignment="Bottom" Background="Transparent" PointerPressed="OnResizeBottom"/>
+      <Border Width="{StaticResource ElSpace2}" HorizontalAlignment="Left" Background="Transparent" PointerPressed="OnResizeLeft"/>
+      <Border Width="{StaticResource ElSpace2}" HorizontalAlignment="Right" Background="Transparent" PointerPressed="OnResizeRight"/>
+
+      <Panel IsVisible="{Binding ShowAbout}" ZIndex="20" Background="{StaticResource ElScrimBrush}">
+        <Border Classes="el-dialog" HorizontalAlignment="Center" VerticalAlignment="Center">
+          <StackPanel Spacing="{StaticResource ElSpace3}">
+            <controls:ProductMark HorizontalAlignment="Left"/>
+            <TextBlock Classes="el-section" Text="{Binding Product}"/>
+            <TextBlock Classes="mono" Text="{Binding VersionLabel}"/>
+            <TextBlock Text="{Binding Credit}" FontSize="11.5" FontWeight="Medium"
+                       FontFamily="{StaticResource ElFontUi}" Foreground="{StaticResource ElTextMutedBrush}"/>
+            <TextBlock Classes="el-muted" Text="{Binding Copyright}"/>
+            <TextBlock Classes="el-body" Text="{Binding LicenseName}"/>
+            <TextBlock Classes="el-body" Text="GitStronghold keeps an offline copy of GitHub profiles you can read. External links open in the system browser. The window does not navigate to remote pages."/>
+            <StackPanel Orientation="Horizontal" Spacing="{StaticResource ElSpace2}">
+              <Button Classes="el-primary" Content="GitHub" Command="{Binding OpenGitHubCommand}"/>
+              <Button Classes="el-secondary" Content="Check for updates" Command="{Binding CheckForUpdatesCommand}"/>
+              <Button Classes="el-secondary" Content="Close" Command="{Binding CloseAboutCommand}"/>
+            </StackPanel>
+            <TextBlock Classes="el-muted" Text="{Binding UpdateStatus}"/>
+          </StackPanel>
+        </Border>
+      </Panel>
+
+      <Panel IsVisible="{Binding ShowDelete}" ZIndex="20" Background="{StaticResource ElScrimBrush}">
+        <Border Classes="el-dialog" HorizontalAlignment="Center" VerticalAlignment="Center">
+          <StackPanel Spacing="{StaticResource ElSpace3}">
+            <TextBlock Classes="el-section" Text="Delete this snapshot?"/>
+            <TextBlock Classes="el-body" Text="{Binding PendingDelete}"/>
+            <TextBlock Classes="el-body" Text="Only the folder for this profile inside the vault is removed."/>
+            <StackPanel Orientation="Horizontal" Spacing="{StaticResource ElSpace2}">
+              <Button Classes="el-danger" Content="Delete" Command="{Binding ConfirmDeleteCommand}"/>
+              <Button Classes="el-secondary" Content="Cancel" Command="{Binding CancelDeleteCommand}"/>
+            </StackPanel>
+          </StackPanel>
+        </Border>
+      </Panel>
+
+      <Border IsVisible="{Binding HasNotification}" ZIndex="15" HorizontalAlignment="Right" VerticalAlignment="Bottom" Classes="el-card" MaxWidth="{StaticResource ElSizeDialogW}">
+        <StackPanel Spacing="{StaticResource ElSpace2}">
+          <TextBlock Classes="el-section" Text="Backup finished"/>
+          <TextBlock Classes="el-body" Text="{Binding Notice}"/>
+          <Button Classes="el-secondary" Content="Dismiss" Command="{Binding DismissNoticeCommand}" HorizontalAlignment="Left"/>
+        </StackPanel>
+      </Border>
+    </Grid>
+  </Border>
+</controls:EliteWindow>

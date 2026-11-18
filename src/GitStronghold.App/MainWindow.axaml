@@ -20,7 +20,7 @@
         <Border Width="{StaticResource ElSizeNavWidth}" Background="{StaticResource ElCharcoal950Brush}">
           <DockPanel>
             <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Spacing="{StaticResource ElSpace3}" Margin="{StaticResource ElMainPadding}">
-              <controls:ProductMark Width="{StaticResource ElSizeMark}" Height="{StaticResource ElSizeMark}" VerticalAlignment="Center"/>
+              <Image Source="avares://GitStronghold/Assets/icon.png" Width="{StaticResource ElSizeMark}" Height="{StaticResource ElSizeMark}" VerticalAlignment="Center" RenderOptions.BitmapInterpolationMode="HighQuality"/>
               <StackPanel VerticalAlignment="Center" Spacing="{StaticResource ElSpace1}">
                 <TextBlock Classes="el-wordmark" Text="{Binding Product}"/>
                 <TextBlock Text="{Binding Credit}" FontSize="11.5" FontWeight="Medium"
@@ -363,7 +363,7 @@
       <Panel IsVisible="{Binding ShowAbout}" ZIndex="20" Background="{StaticResource ElScrimBrush}">
         <Border Classes="el-dialog" HorizontalAlignment="Center" VerticalAlignment="Center">
           <StackPanel Spacing="{StaticResource ElSpace3}">
-            <controls:ProductMark HorizontalAlignment="Left"/>
+            <Image Source="avares://GitStronghold/Assets/icon.png" Width="{StaticResource ElSizeMark}" Height="{StaticResource ElSizeMark}" HorizontalAlignment="Left" RenderOptions.BitmapInterpolationMode="HighQuality"/>
             <TextBlock Classes="el-section" Text="{Binding Product}"/>
             <TextBlock Classes="mono" Text="{Binding VersionLabel}"/>
             <TextBlock Text="{Binding Credit}" FontSize="11.5" FontWeight="Medium"
